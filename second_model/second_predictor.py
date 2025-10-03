@@ -17,7 +17,7 @@ print(away_stats_dict["DEN"].columns)
 schedule_df = pd.read_csv("nfl_schedule_formatted.csv")
 
 # Week to process
-week_num = 4
+week_num = 5
 week_df = schedule_df[schedule_df['week #'] == week_num]
 print(week_df)
 print(home_stats_dict.keys())
@@ -66,6 +66,8 @@ features_df.to_csv(f"week_{week_num}_features.csv", index=False)
 print(f"Week {week_num} features saved as week_{week_num}_features.csv")
 
 X_all = features_df.drop(columns=["home_diff", "win_diff", "week #" ,"home_team","away_team"], errors='ignore')
+
+print(X_all.columns)
 
 # Predict probabilities for all games
 home_win_probs = model.predict_proba(X_all)[:, 1]

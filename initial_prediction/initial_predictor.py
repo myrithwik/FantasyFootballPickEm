@@ -1,11 +1,11 @@
 import pickle
 import pandas as pd
 
-with open("home_team_stats_2020_to_2025.pkl", "rb") as f:
+with open("initial_prediction/home_team_stats_2020_to_2025.pkl", "rb") as f:
     home_stats_dict = pickle.load(f)
-with open("away_team_stats_2020_to_2025.pkl", "rb") as f:
+with open("initial_prediction/away_team_stats_2020_to_2025.pkl", "rb") as f:
     away_stats_dict = pickle.load(f)
-with open("home_win_model.pkl", "rb") as f:
+with open("initial_prediction/home_win_model.pkl", "rb") as f:
     model = pickle.load(f)
 # Example dictionaries
 # home_team_stats_df = {"ARI": pd.DataFrame(...), ...}
@@ -15,7 +15,7 @@ with open("home_win_model.pkl", "rb") as f:
 schedule_df = pd.read_csv("nfl_schedule_formatted.csv")
 
 # Week to process
-week_num = 3
+week_num = 5
 week_df = schedule_df[schedule_df['week #'] == week_num]
 print(week_df)
 print(home_stats_dict.keys())
@@ -41,6 +41,10 @@ for idx, game in week_df.iterrows():
     home_avg = home_slice.mean(numeric_only=True)
     away_avg = away_slice.mean(numeric_only=True)
 
+    #drop unneeded columns
+    home_avg = home_avg.drop(["air_yards_allowed", "air_yards", "epa", "epa_allowed", "qb_epa", "qb_epa_allowed", "win_prob_added", "win_prob_added_allowed", "qb_hits", "qb_hits_allowed", "tfl", "tfl_allowed", "sacks", "sacks_allowed", "total_tds", "total_tds_allowed", "yac", "yac_allowed"])
+    away_avg = away_avg.drop(["air_yards_allowed", "air_yards", "epa", "epa_allowed", "qb_epa", "qb_epa_allowed", "win_prob_added", "win_prob_added_allowed", "qb_hits", "qb_hits_allowed", "tfl", "tfl_allowed", "sacks", "sacks_allowed", "total_tds", "total_tds_allowed", "yac", "yac_allowed"])
+
     # Subtract away from home
     feature_row = home_avg - away_avg
     feature_row.index = [f"{col}_diff" for col in feature_row.index]
@@ -60,6 +64,7 @@ features_df.to_csv(f"week_{week_num}_features.csv", index=False)
 print(f"Week {week_num} features saved as week_{week_num}_features.csv")
 
 X_all = features_df.drop(columns=["home_diff", "win_diff", "week #" ,"home_team","away_team"], errors='ignore')
+print(X_all.columns)
 
 # Predict probabilities for all games
 home_win_probs = model.predict_proba(X_all)[:, 1]

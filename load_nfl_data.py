@@ -8,17 +8,6 @@ pbp_data = nfl.import_pbp_data([2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 
 # for col in nfl.see_pbp_cols():
 #     print(col)
 
-print(pbp_data[["pass_attempt", "rush_attempt", "third_down_converted", "third_down_failed", "drive_time_of_possession"]])
-
-print("*********")
-
-print(pbp_data[["drive", "series", "series_success", "series_result", "fixed_drive", "fixed_drive_result", "drive_play_count"]])
-
-print("**********")
-
-print(pbp_data[pbp_data["drive_inside20"] == 1][["yardline_100", "yrdln", "drive_inside20", "drive_ended_with_score", "fixed_drive_result"]])
-print(pbp_data["fixed_drive_result"].unique())
-
 teams = pbp_data["posteam"].unique()
 teams = teams[teams != None]
 
@@ -81,12 +70,6 @@ offense = offense.rename(columns={
 # Derived stats
 offense["turnovers"] = offense["fumble_lost"] + offense["interception"]
 offense["home"] = (offense["home_team"] == offense["team"]).astype(int)
-offense["pass_yards_per_atempt"] = offense["passing_yards"] / offense["pass_attempt"]
-offense["rush_yards_per_atempt"] = offense["rushing_yards"] / offense["rush_attempt"]
-offense["third_down_efficiency"] = offense["third_down_converted"] / (offense["third_down_converted"] + offense["third_down_failed"])
-
-# Drop helper cols no longer needed
-offense = offense.drop(columns=["fumble_lost", "interception", "home_team", "pass_attempt", "rush_attempt", "third_down_converted", "third_down_failed"])
 
 drive_data = (
     pbp_data
@@ -126,8 +109,6 @@ drive_redzone["redzone_efficiency"] = drive_redzone["redzone_touchdowns"] / driv
 drive_time = drive_time.rename(columns={"drive_time_of_possession": "time_of_possession", "posteam": "team"})
 drive_redzone = drive_redzone.rename(columns={"posteam": "team"})
 
-print(drive_redzone)
-print(drive_time)
 offense = offense.merge(
     drive_time,
     on=["game_id", "team"],
@@ -138,17 +119,32 @@ offense = offense.merge(
     how="left"
 )
 offense = offense.drop(columns=["drive_inside20"])
-print(offense)
+
+########## CALCULATE ALL FEATURES HERE ##############
+offense["points_per_drive"] = offense["total_points"] / offense["number_of_drives"]
+offense["yards_per_play"] = offense["total_yards"] / (offense["pass_attempt"] + offense["rush_attempt"])
+offense["passing_yards_per_attempt"] = offense["passing_yards"] / offense["pass_attempt"]
+offense["rushing_yards_per_attempt"] = offense["rushing_yards"] / offense["rush_attempt"]
+offense["turnovers_per_drive"] = offense["turnovers"] / offense["number_of_drives"]
+offense["sacks_per_pass_attempt"] = offense["sacks_allowed"] / offense["pass_attempt"]
+offense["tfl_per_rush_attempt"] = offense["tfl_allowed"] / offense["rush_attempt"]
+offense["qb_hits_per_pass_attempt"] = offense["qb_hits_allowed"] / offense["pass_attempt"]
+
+# Drop helper cols no longer needed
+offense = offense.drop(columns=["fumble_lost", "interception", "home_team", "pass_attempt", "rush_attempt", "third_down_converted", "third_down_failed"])
+
+print(offense.columns)
 
 # --- Step 2: Merge in opponent stats (defense) ---
 # We'll suffix opponent columns with `_allowed`
 defense = offense.copy()
-defense = defense.rename(columns={col: col + "_allowed" for col in [
-    "passing_yards", "rushing_yards", "total_yards", "total_points", "passing_tds", "rushing_tds", "total_tds", "qb_epa", "win_prob_added", "epa", "air_yards", "yac", "number_of_drives", "turnovers", "sacks_allowed", "tfl_allowed", "qb_hits_allowed", "third_down_efficiency", "pass_yards_per_atempt", "rush_yards_per_atempt", "redzone_touchdowns", "redzone_drive_count", "redzone_efficiency", "time_of_possession"
-]})
+# defense = defense.rename(columns={col: col + "_allowed" for col in [
+#     "passing_yards", "rushing_yards", "total_yards", "total_points", "passing_tds", "rushing_tds", "total_tds", "qb_epa", "win_prob_added", "epa", "air_yards", "yac", "number_of_drives", "turnovers", "sacks_allowed", "tfl_allowed", "qb_hits_allowed", "third_down_efficiency", "pass_yards_per_atempt", "rush_yards_per_atempt", "redzone_touchdowns", "redzone_drive_count", "redzone_efficiency", "time_of_possession"
+# ]})
+defense = defense.rename(columns={col: col + "_allowed" for col in defense.columns if col not in ["game_id", "team", "opponent", "home", "sacks_allowed", "qb_hits_allowed", "tfl_allowed", "turnovers", "turnovers_per_drive"]})
 
 # Flip perspective: opponent in offense table = team in defense
-defense = defense.rename(columns={"team": "opponent", "opponent": "team", "sacks_allowed": "sacks", "tfl_allowed": "tfl", "qb_hits_allowed": "qb_hits", "turnovers": "turnovers_forced"})
+defense = defense.rename(columns={"team": "opponent", "opponent": "team", "sacks_allowed": "sacks", "tfl_allowed": "tfl", "qb_hits_allowed": "qb_hits", "turnovers": "turnovers_forced", "turnovers_per_drive": "turnovers_forced_per_drive"})
 defense = defense.drop(columns=["home"])
 
 # Merge on game_id + team
@@ -183,19 +179,19 @@ for team, df in team_stats_dict.items():
     home_stats_dict[team] = df[df["home"] == 1].reset_index(drop=True).copy()
     away_stats_dict[team] = df[df["home"] == 0].reset_index(drop=True).copy()
 
-print(home_stats_dict["DEN"])
-# with open("second_model/home_team_stats_2020_to_2025.pkl", "wb") as f:
-#     pickle.dump(home_stats_dict, f)
+#print(home_stats_dict["DEN"])
+with open("spread_model1/home_team_stats_2020_to_2025.pkl", "wb") as f:
+    pickle.dump(home_stats_dict, f)
 
-# with open("second_model/away_team_stats_2020_to_2025.pkl", "wb") as f:
-#     pickle.dump(away_stats_dict, f)
+with open("spread_model1/away_team_stats_2020_to_2025.pkl", "wb") as f:
+    pickle.dump(away_stats_dict, f)
 agg_funcs = {
     "home_score": "max",    # max score reached
     "away_score": "max",
     # "Wind": "mean",
     # "Temp": "mean",
-    # "spread_line": "first",
-    # "total_line": "first"
+    "spread_line": "first",
+    "total_line": "first"
 }
 
 game_data = (
@@ -204,7 +200,9 @@ game_data = (
     .agg(agg_funcs)
 )
 game_data["home_win"] = (game_data["home_score"] > game_data["away_score"]).astype(int)
-game_data = game_data.drop(columns=["home_score", "away_score"])
+game_data["spread_result"] = ((game_data["home_score"] - game_data["away_score"]) >= game_data["spread_line"]).astype(int)
+game_data["total_result"] = ((game_data["home_score"] + game_data["away_score"]) >= game_data["total_line"]).astype(int)
+game_data = game_data.drop(columns=["spread_line", "total_line"])
 # game_data["Wind"] = game_data["Wind"].fillna(0)
 # game_data["Temp"] = game_data["Temp"].fillna(68)
 
