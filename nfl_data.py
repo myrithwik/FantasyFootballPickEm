@@ -7,7 +7,7 @@ import pandas as pd
 # for col in pbp_cols:
 #     print(col)
 
-pbp_2024 = nfl.import_pbp_data([2022])
+pbp_2024 = nfl.import_pbp_data([2025])
 
 teams = pbp_2024["posteam"].unique()
 teams = teams[teams != None]
@@ -20,35 +20,47 @@ for team in teams:
 
 #overall_passing_data = pd.DataFrame(columns=["team", "game_id", "passing_yards"])
 
-for team in teams[:2]:
-    #Filter for the teams offensive pass plays
-    team_plays = pbp_2024[
-        (pbp_2024['posteam'] == team) &
-        (pbp_2024['season_type'] == "REG")
-    ]
+# for team in teams[:2]:
+#     #Filter for the teams offensive pass plays
+#     team_plays = pbp_2024[
+#         (pbp_2024['posteam'] == team) &
+#         (pbp_2024['season_type'] == "REG")
+#     ]
 
-    # Sum the passing yards, excluding NaNs
-    #total_passing_yards = team_plays['rush_touchdown'].dropna().sum()
+#     # Sum the passing yards, excluding NaNs
+#     #total_passing_yards = team_plays['rush_touchdown'].dropna().sum()
 
-    #print(f"Total Passing Yards for the {team} in 2024: {total_passing_yards}")
+#     #print(f"Total Passing Yards for the {team} in 2024: {total_passing_yards}")
 
-    # Drop rows with missing passing_yards
-    team_pass_plays = team_pass_plays.dropna(subset=['passing_yards'])
+#     # Drop rows with missing passing_yards
+#     team_pass_plays = team_pass_plays.dropna(subset=['passing_yards'])
 
-    # Group by week and sum passing yards
-    weekly_passing_yards = (
-        team_pass_plays
-        .groupby('game_id')['passing_yards']
-        .sum()
-        .reset_index()
-        .sort_values('game_id')
-    )
+#     # Group by week and sum passing yards
+#     weekly_passing_yards = (
+#         team_pass_plays
+#         .groupby('game_id')['passing_yards']
+#         .sum()
+#         .reset_index()
+#         .sort_values('game_id')
+#     )
 
-    # Optional: Rename columns for clarity
-    weekly_passing_yards.columns = ['game_id', 'passing_yards']
-    weekly_passing_yards["team"] = team
-    weekly_passing_yards = weekly_passing_yards[["team", "game_id", "passing_yards"]]
-    overall_passing_data = pd.concat([overall_passing_data, weekly_passing_yards])
+#     # Optional: Rename columns for clarity
+#     weekly_passing_yards.columns = ['game_id', 'passing_yards']
+#     weekly_passing_yards["team"] = team
+#     weekly_passing_yards = weekly_passing_yards[["team", "game_id", "passing_yards"]]
+#     overall_passing_data = pd.concat([overall_passing_data, weekly_passing_yards])
 
-    #print(weekly_passing_yards)
-print(overall_passing_data)
+#     #print(weekly_passing_yards)
+# print(overall_passing_data)
+
+grouped_df = pbp_2024.groupby("game_id").agg({
+    "home_team": "first",
+    "away_team": "first",
+    "spread_line": "first",
+    "home_score": "max",
+    "away_score": "max"
+}).reset_index()
+
+#for row in grouped_df.iterrows():
+pd.set_option('display.max_rows', None)
+print(grouped_df)

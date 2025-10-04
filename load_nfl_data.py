@@ -202,7 +202,7 @@ game_data = (
 game_data["home_win"] = (game_data["home_score"] > game_data["away_score"]).astype(int)
 game_data["spread_result"] = ((game_data["home_score"] - game_data["away_score"]) >= game_data["spread_line"]).astype(int)
 game_data["total_result"] = ((game_data["home_score"] + game_data["away_score"]) >= game_data["total_line"]).astype(int)
-game_data = game_data.drop(columns=["spread_line", "total_line"])
+#game_data = game_data.drop(columns=["spread_line", "total_line"])
 # game_data["Wind"] = game_data["Wind"].fillna(0)
 # game_data["Temp"] = game_data["Temp"].fillna(68)
 

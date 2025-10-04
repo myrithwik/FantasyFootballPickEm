@@ -20,7 +20,7 @@ home_points_features = [
     "total_points_home",
     "yards_per_play_home",
     "epa_home",
-    "redzone_drive_count_home"
+    "redzone_drive_count_home",
     "total_tds_home",
     "total_yards_home",
     "points_per_drive_home_away_off_diff",
