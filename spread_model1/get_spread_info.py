@@ -112,7 +112,7 @@ def fetch_nfl_spreads(api_key: str, region: str = "us") -> pd.DataFrame:
 
 # Example usage
 if __name__ == "__main__":
-    API_KEY = "45d6d7361ebb182ab03624f977439b8f"
+    API_KEY = "your_api_key_here"
     df = fetch_nfl_spreads(API_KEY)
     print(df.head())
     df.to_csv("nfl_spreads_try1.csv", index=False)

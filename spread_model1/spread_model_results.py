@@ -111,7 +111,7 @@ def merge_with_spread(pred_df, spread_df, evaluation):
     return merged
 
 def main():
-    API_KEY = "45d6d7361ebb182ab03624f977439b8f"
+    API_KEY = "your_api_key_here"
     curr_week = 5
     week_num = 4
     evaluation = True
