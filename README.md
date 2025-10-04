@@ -41,11 +41,11 @@ Using team-level stats from the past **10 NFL seasons (2015–2024)**, this proj
 ## ⚙️ How It Works
 
 1. **Data Collection**  
-   - Pulls historical team-level stats (e.g. points per drive, EPA, red zone efficiency).
+   - Pulls historical play by play stats and aggregates them into derived team level stats (e.g. points per drive, EPA, red zone efficiency).
    - Loads spreads and results for past games.
 
 2. **Model Training**  
-   - Two separate regression models are trained:
+   - Two separate tree based ensemble regression models are trained:
      - One for predicting **home team points**.
      - One for **away team points**.
 
@@ -60,22 +60,6 @@ Using team-level stats from the past **10 NFL seasons (2015–2024)**, this proj
      - ✅ Correct winner predictions
      - ✅ Correct spread predictions
      - 📈 Weekly and overall prediction accuracy
-
----
-
-## 🗂️ Project Structure
-.
-├── spread_model1/                  # Serialized model and data files
-│   ├── home_points_model.pkl
-│   ├── away_points_model.pkl
-│   ├── home_team_stats_2020_to_2025.pkl
-│   ├── away_team_stats_2020_to_2025.pkl
-│   └── game_data_2020_to_2025.pkl
-├── nfl_schedule_formatted.csv     # 2025 schedule data
-├── get_spread_info.py             # Script to fetch spread data from The Odds API
-├── predict_spread.py              # Main runner script
-├── spread_predictions.csv         # Output: predictions & evaluation
-└── README.md                      # This file
 
 ---
 
